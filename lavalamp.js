@@ -105,7 +105,7 @@ function ParticleRenderer(ctx, particles, bounds) {
 		}
 		function renderCircle(particle) {
 			var location = particle.getLocation()
-			ctx.strokeStyle = "#000000";
+			ctx.strokeStyle = "rgba(256, 256, 0, 0.5)";
 			ctx.fillStyle = "rgba(256, 256, 0, 0.5)";
 			ctx.beginPath();
 			ctx.arc(location.x, location.y,10,0,Math.PI*2,true);
