@@ -98,13 +98,24 @@ function ParticleMover(particles, functionsToApply) {
 // CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> ParticleRenderer
 function ParticleRenderer(ctx, particles, bounds) {
 	function render() {
-		ctx.fillStyle = "rgb(256, 256, 256)";
-		ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
-		ctx.fillStyle = "rgb(0, 0, 0)";
-		_.forEach(particles, function(particle) {
+		function renderRectangle(particle) {
+			ctx.fillStyle = "rgba(256, 256, 0, 0.5)";
 			var location = particle.getLocation()
-			ctx.fillRect(location.x, location.y, 3, 3)
-		})
+			ctx.fillRect(location.x, location.y, 10, 10)			
+		}
+		function renderCircle(particle) {
+			var location = particle.getLocation()
+			ctx.strokeStyle = "#000000";
+			ctx.fillStyle = "rgba(256, 256, 0, 0.5)";
+			ctx.beginPath();
+			ctx.arc(location.x, location.y,10,0,Math.PI*2,true);
+			ctx.closePath();
+			ctx.stroke();
+			ctx.fill();
+		}
+		ctx.fillStyle = "rgb(0, 0, 0)";
+		ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
+		_.forEach(particles, renderCircle)
 	}
 	return { render : render }
 }
