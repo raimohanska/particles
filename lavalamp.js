@@ -10,6 +10,7 @@ function Lavalamp(canvas) {
 		Downforce(),
 		BoundsChecker(bounds)]
 	)
+	//var renderer = PixelRenderer(ctx, particles, bounds) 
 	var renderer = ParticleRenderer(ctx, particles, bounds)
 		
 	Updater(mover, renderer, 20)
@@ -133,17 +134,20 @@ function ParticleMover(particles, functionsToApply) {
 	}}
 }
 
+function TemperatureColor(temperature) {
+	if (temperature == 0) {
+		return "rgba(0, 0, 0, 0.5)"			
+	}
+	green = Math.floor(Math.min(temperature, 256))
+	return "rgba(256, " + green +", 0, 0.8)"	
+}
+
 // CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> ParticleRenderer
 function ParticleRenderer(ctx, particles, bounds) {
 	function render() {
-		function renderRectangle(particle) {
-			ctx.fillStyle = "rgba(256, 256, 0, 0.5)";
-			var location = particle.getLocation()
-			ctx.fillRect(location.x, location.y, 10, 10)			
-		}
 		function renderCircle(particle) {
 			var location = particle.getLocation()
-			var colorCode = getColorCode(particle)
+			var colorCode = TemperatureColor(particle.temperature)
 			ctx.strokeStyle = colorCode;
 			ctx.fillStyle = colorCode;
 			ctx.beginPath();
@@ -152,13 +156,30 @@ function ParticleRenderer(ctx, particles, bounds) {
 			ctx.stroke();
 			ctx.fill();
 		}
-		function getColorCode(particle) {
-			green = Math.floor(Math.min(particle.temperature, 256))
-			return "rgba(256, " + green +", 0, 0.5)"
-		}
 		ctx.fillStyle = "rgb(0, 0, 0)";
 		ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
 		_.forEach(particles, renderCircle)
+	}
+	return { render : render }
+}
+
+// CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> PixelRenderer
+function PixelRenderer(ctx, particles, bounds) {
+	function render() {
+		var pixelSize = 8
+		for (var x = 0 ; x < bounds.width ; x += pixelSize) {
+			for (var y = 0; y < bounds.height; y += pixelSize) {
+				var heat = 0
+				particles.forEach(function(particle) {
+					var distance = particle.getLocation().subtract(Vector2D(x, y)).getLength()
+					if (distance < pixelSize) {
+						heat += particle.temperature
+					}
+				})
+				ctx.fillStyle = TemperatureColor(heat)
+				ctx.fillRect(x, y, pixelSize, pixelSize)				
+			}
+		}		
 	}
 	return { render : render }
 }
