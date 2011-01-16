@@ -5,7 +5,9 @@ function Lavalamp(canvas) {
 	
 	var particles = Init(bounds, count)	
 	var mover = ParticleMover(particles, [
-		Gravity(particles, SimpleGravity(1 / 10000)), 
+		Gravity(particles, Liquidness() /*SimpleGravity(1 / 10000)*/), 
+		Heater(bounds),
+		Downforce(),
 		BoundsChecker(bounds)]
 	)
 	var renderer = ParticleRenderer(ctx, particles, bounds)
@@ -17,7 +19,7 @@ function Init(bounds, count) {
 	function randomParticle() {
 		// Unit -> point
 		function randomLocation() { 
-			return Vector2D(bounds.x + Math.random() * bounds.width, bounds.y + Math.random() * bounds.height) 
+			return Vector2D(bounds.x + Math.random() * bounds.width, bounds.y + bounds.height) 
 		}
 		return Particle(randomLocation(), Vector2D(0, 0), bounds)
 	}
@@ -44,6 +46,22 @@ function SimpleGravity(factor) {
 	}
 }
 
+function Liquidness() {
+	return function(particle, otherParticle) {
+		var distanceVector = otherParticle.getLocation().subtract(particle.getLocation())
+		var distance = distanceVector.getLength()
+		var rejectionThreshold = 12
+		var attractionThreshold = 30
+		if (distance < rejectionThreshold) {
+			return distanceVector.withLength(-0.0001)
+		} else if (distance < attractionThreshold) {
+			return distanceVector.withLength(+0.00002)
+		}
+		return Vector2D(0, 0)
+	}
+}
+
+
 function Gravity(particles, gravityFunction) {
 	return function (particle, deltaTime) {
 		_.forEach(particles, function(otherParticle) {
@@ -53,6 +71,26 @@ function Gravity(particles, gravityFunction) {
 			}
 		})
 	}	
+}
+
+function Downforce() {
+	return function(particle, deltaTime) {
+		var equilibriumTemperature = 100
+		var diff = particle.temperature - equilibriumTemperature		
+		particle.accelerate(Vector2D(0, -diff / 1000000), deltaTime)
+	}
+}
+
+function Heater(bounds) {
+	return function(particle, deltaTime) {
+		particle.temperature |= 0
+		var lampPosition = Vector2D(bounds.x + bounds.width / 2, bounds.y + bounds.height)
+		var distanceFromLamp = particle.getLocation().subtract(lampPosition).getLength() + 10
+		var ambientTemperature = 10000 / distanceFromLamp
+		var diff = ambientTemperature - particle.temperature
+		var conductivity = 0.005		
+		particle.temperature = particle.temperature + diff * conductivity;
+	}
 }
 
 function BoundsChecker(bounds) {
@@ -105,13 +143,18 @@ function ParticleRenderer(ctx, particles, bounds) {
 		}
 		function renderCircle(particle) {
 			var location = particle.getLocation()
-			ctx.strokeStyle = "rgba(256, 256, 0, 0.5)";
-			ctx.fillStyle = "rgba(256, 256, 0, 0.5)";
+			var colorCode = getColorCode(particle)
+			ctx.strokeStyle = colorCode;
+			ctx.fillStyle = colorCode;
 			ctx.beginPath();
 			ctx.arc(location.x, location.y,10,0,Math.PI*2,true);
 			ctx.closePath();
 			ctx.stroke();
 			ctx.fill();
+		}
+		function getColorCode(particle) {
+			green = Math.floor(Math.min(particle.temperature, 256))
+			return "rgba(256, " + green +", 0, 0.5)"
 		}
 		ctx.fillStyle = "rgb(0, 0, 0)";
 		ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
