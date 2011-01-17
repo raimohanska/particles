@@ -139,19 +139,20 @@ function TemperatureColor(temperature) {
 		return "rgba(0, 0, 0, 0.5)"			
 	}
 	green = Math.floor(Math.min(temperature, 256))
-	return "rgba(256, " + green +", 0, 0.8)"	
+	return "rgba(256, " + green +", 0, 0.5)"	
 }
 
 // CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> ParticleRenderer
 function ParticleRenderer(ctx, particles, bounds) {
 	function render() {
+		var radius = 20
 		function renderCircle(particle) {
 			var location = particle.getLocation()
 			var colorCode = TemperatureColor(particle.temperature)
 			ctx.strokeStyle = colorCode;
 			ctx.fillStyle = colorCode;
 			ctx.beginPath();
-			ctx.arc(location.x, location.y,10,0,Math.PI*2,true);
+			ctx.arc(location.x, location.y,radius,0,Math.PI*2,true);
 			ctx.closePath();
 			ctx.stroke();
 			ctx.fill();
