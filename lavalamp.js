@@ -39,54 +39,54 @@ function Updater(mover, renderer, interval) {
 
 // Number -> (Particle -> Particle -> Unit)
 function SimpleGravity(factor) {
-	return function(particle, otherParticle) {
-		var distanceVector = otherParticle.getLocation().subtract(particle.getLocation())
+	return function(particle, otherParticle, cache) {
+		var distanceVector = otherParticle.getLocation().subtract(particle.getLocation(), cache)
 		var distance = distanceVector.getLength()
 		var gravity = factor / distance
-		return distanceVector.withLength(gravity)
+		return distanceVector.withLength(gravity, cache)
 	}
 }
 
 function Liquidness() {
-	return function(particle, otherParticle) {
-		var distanceVector = otherParticle.getLocation().subtract(particle.getLocation())
+	return function(particle, otherParticle, cache) {
+		var distanceVector = otherParticle.getLocation().subtract(particle.getLocation(), cache)
 		var distance = distanceVector.getLength()
 		var rejectionThreshold = 12
 		var attractionThreshold = 30
 		if (distance < rejectionThreshold) {
-			return distanceVector.withLength(-0.0001)
+			return distanceVector.withLength(-0.0001, cache)
 		} else if (distance < attractionThreshold) {
-			return distanceVector.withLength(+0.00002)
+			return distanceVector.withLength(+0.00002, cache)
 		}
-		return Vector2D(0, 0)
+		return Vector2D(0, 0, cache)
 	}
 }
 
 
-function Gravity(particles, gravityFunction) {
-	return function (particle, deltaTime) {
+function Gravity(particles, gravityFunction, cache) {
+	return function (particle, deltaTime, cache) {
 		_.forEach(particles, function(otherParticle) {
 			if (otherParticle != particle) {
-				var gravitation = gravityFunction(particle, otherParticle)
-				particle.accelerate(gravitation, deltaTime)
+				var gravitation = gravityFunction(particle, otherParticle, cache)
+				particle.accelerate(gravitation, deltaTime, cache)
 			}
 		})
 	}	
 }
 
 function Downforce() {
-	return function(particle, deltaTime) {
+	return function(particle, deltaTime, cache) {
 		var equilibriumTemperature = 100
 		var diff = particle.temperature - equilibriumTemperature		
-		particle.accelerate(Vector2D(0, -diff / 1000000), deltaTime)
+		particle.accelerate(Vector2D(0, -diff / 1000000, cache), deltaTime, cache)
 	}
 }
 
 function Heater(bounds) {
-	return function(particle, deltaTime) {
+	return function(particle, deltaTime, cache) {
 		particle.temperature |= 0
-		var lampPosition = Vector2D(bounds.x + bounds.width / 2, bounds.y + bounds.height)
-		var distanceFromLamp = particle.getLocation().subtract(lampPosition).getLength() + 10
+		var lampPosition = Vector2D(bounds.x + bounds.width / 2, bounds.y + bounds.height, cache)
+		var distanceFromLamp = particle.getLocation().subtract(lampPosition, cache).getLength() + 10
 		var ambientTemperature = 10000 / distanceFromLamp
 		var diff = ambientTemperature - particle.temperature
 		var conductivity = 0.005		
@@ -120,17 +120,15 @@ function BoundsChecker(bounds) {
 // Array<Particle> -> Array<(Particle -> deltaTime -> Unit)> -> ParticleMover
 // Optional arguments of type Particle -> deltaTime -> Unit
 function ParticleMover(particles, functionsToApply) {
-	function moveParticle(particle, deltaTime) {
+	function moveParticle(particle, deltaTime, cache) {
 		functionsToApply.forEach(function(functionToApply) {
-			functionToApply(particle, deltaTime)
+			functionToApply(particle, deltaTime, cache)
 		})
-		particle.move(deltaTime)
+		particle.move(deltaTime, cache)
 	}
-	function moveParticles() {
-		_.forEach(particles, moveParticle)
-	}
+	var cache = Vector2D()
 	return { move : function(deltaTime) {
-		_.forEach(particles, function(particle) { moveParticle(particle, deltaTime) })
+		_.forEach(particles, function(particle) { moveParticle(particle, deltaTime, cache) })
 	}}
 }
 
@@ -190,22 +188,27 @@ function Rectangle(x, y, width, height) {
 }
 
 // Number -> Number -> Vector2D
-function Vector2D(x, y) {
+function Vector2D(x, y, cache) {
+	if (cache) {
+		cache.x = x
+		cache.y = y
+		return cache
+	}
 	return {
 		x : x, 
 		y : y,
 		// Vector2D -> Vector2D
-		add : function(other) { return Vector2D(this.x + other.x, this.y + other.y) },
+		add : function(other, cache) { return Vector2D(this.x + other.x, this.y + other.y, cache) },
 		// Vector2D -> Vector2D
-		subtract : function(other) { return this.add(other.invert()) },
+		subtract : function(other, cache) { return this.add(other.invert(cache), cache) },
 		// Unit -> Number
 		getLength : function() { return Math.sqrt(this.x * this.x + this.y * this.y) },
 		// Number -> Vector2D
-		times : function(multiplier) { return Vector2D(this.x * multiplier, this.y * multiplier) },
+		times : function(multiplier, cache) { return Vector2D(this.x * multiplier, this.y * multiplier, cache) },
 		// Unit -> Vector2D
-		invert : function() { return Vector2D(-this.x, -this.y) },
+		invert : function(cache) { return Vector2D(-this.x, -this.y, cache) },
 		// Number -> Vector2D
-		withLength : function(newLength) { return this.times(newLength / this.getLength()) }
+		withLength : function(newLength, cache) { return this.times(newLength / this.getLength(), cache) }
 	}
 }
 
@@ -217,11 +220,11 @@ function Particle(location, velocity, bounds) {
 		// Unit -> Vector2D
 		getVelocity : function() { return velocity},
 		// Vector2D -> Unit
-		accelerate : function(acceleration, deltaTime) { velocity = velocity.add(acceleration.times(deltaTime)) },
+		accelerate : function(acceleration, deltaTime, cache) { velocity = velocity.add(acceleration.times(deltaTime, cache), velocity, cache) },
 		// Number -> Unit
-		move : function(deltaTime) {
-		    var deltaPos = velocity.times(deltaTime) 
-		    location = Vector2D(location.x + deltaPos.x, location.y + deltaPos.y)
+		move : function(deltaTime, cache) {
+		    var deltaPos = velocity.times(deltaTime, cache) 
+		    location = Vector2D(location.x + deltaPos.x, location.y + deltaPos.y, location)
 		}
 	}	
 }
