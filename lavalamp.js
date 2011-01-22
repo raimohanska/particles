@@ -59,7 +59,11 @@ function Liquidness() {
 		var neighbourhoodThreshold = 50
 		if (distance < neighbourhoodThreshold) {
 			particle.neighbour = otherParticle
-			otherParticle.neighbour = undefined			
+			otherParticle.neighbour = undefined
+			if (particle.temperature) {
+				//particle.temperature = (particle.temperature + otherParticle.temperature) / 2
+				//otherParticle.temperature = particle.temperature				
+			}
 		} else if (particle.neighbour == otherParticle && distance > neighbourhoodThreshold * 2) {
 			particle.neighbour = undefined
 		}
@@ -147,7 +151,7 @@ function TemperatureColor(temperature) {
 		return "rgba(0, 0, 0, 0.5)"			
 	}
 	green = Math.floor(Math.min(temperature, 256))
-	return "rgba(256, " + green +", 0, 1)"	
+	return "rgba(256, " + green +", 0, 0.5)"	
 }
 
 // CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> ParticleRenderer
@@ -182,7 +186,7 @@ function SlimeRenderer(ctx, radius) {
 	return function(particle) {
 		var neighbour = particle.neighbour
 		if (neighbour) {
-			var colorCode = TemperatureColor(particle.temperature + neighbour.temperature / 2)
+			var colorCode = TemperatureColor((particle.temperature + neighbour.temperature) / 2)
 			ctx.strokeStyle = colorCode;
 			ctx.fillStyle = colorCode;
 			var pl = particle.getLocation()
