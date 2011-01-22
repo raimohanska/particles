@@ -11,7 +11,9 @@ function Lavalamp(canvas) {
 		BoundsChecker(bounds)]
 	)
 	//var renderer = PixelRenderer(ctx, particles, bounds) 
-	var renderer = ParticleRenderer(ctx, particles, bounds)
+	var renderer = ParticleRenderer(ctx, particles, bounds, [
+		ParticleCircleRenderer(ctx)
+	])
 		
 	Updater(mover, renderer, 20)
 }
@@ -56,6 +58,8 @@ function Liquidness() {
 		if (distance < rejectionThreshold) {
 			return distanceVector.withLength(-0.0001, cache)
 		} else if (distance < attractionThreshold) {
+			particle.neighbour = otherParticle
+			otherParticle.neighbour = undefined
 			return distanceVector.withLength(+0.00002, cache)
 		}
 		return Vector2D(0, 0, cache)
@@ -141,25 +145,32 @@ function TemperatureColor(temperature) {
 }
 
 // CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> ParticleRenderer
-function ParticleRenderer(ctx, particles, bounds) {
+function ParticleRenderer(ctx, particles, bounds, renderers) {
 	function render() {
-		var radius = 20
-		function renderCircle(particle) {
-			var location = particle.getLocation()
-			var colorCode = TemperatureColor(particle.temperature)
-			ctx.strokeStyle = colorCode;
-			ctx.fillStyle = colorCode;
-			ctx.beginPath();
-			ctx.arc(location.x, location.y,radius,0,Math.PI*2,true);
-			ctx.closePath();
-			ctx.stroke();
-			ctx.fill();
-		}
 		ctx.fillStyle = "rgb(0, 0, 0)";
 		ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
-		_.forEach(particles, renderCircle)
+		particles.forEach(function(particle) {
+			renderers.forEach(function (renderer) {
+				renderer(particle)
+			})
+		})
 	}
 	return { render : render }
+}
+
+function ParticleCircleRenderer(ctx) {
+	var radius = 20
+	return function(particle) {
+		var location = particle.getLocation()
+		var colorCode = TemperatureColor(particle.temperature)
+		ctx.strokeStyle = colorCode;
+		ctx.fillStyle = colorCode;
+		ctx.beginPath();
+		ctx.arc(location.x, location.y,radius,0,Math.PI*2,true);
+		ctx.closePath();
+		ctx.stroke();
+		ctx.fill();		
+	}
 }
 
 // CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> PixelRenderer
