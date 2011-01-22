@@ -13,7 +13,7 @@ function Lavalamp(canvas) {
 	//var renderer = PixelRenderer(ctx, particles, bounds) 
 	var renderer = ParticleRenderer(ctx, particles, bounds, [
 		ParticleCircleRenderer(ctx, 20),
-		ParticleNeighbourRenderer(ctx, 20)
+		SlimeRenderer(ctx, 20)
 	])
 		
 	Updater(mover, renderer, 20)
@@ -147,7 +147,7 @@ function TemperatureColor(temperature) {
 		return "rgba(0, 0, 0, 0.5)"			
 	}
 	green = Math.floor(Math.min(temperature, 256))
-	return "rgba(256, " + green +", 0, 0.5)"	
+	return "rgba(256, " + green +", 0, 1)"	
 }
 
 // CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> ParticleRenderer
@@ -178,16 +178,41 @@ function ParticleCircleRenderer(ctx, radius) {
 	}
 }
 
-function ParticleNeighbourRenderer(ctx, radius) {
+function SlimeRenderer(ctx, radius) {
 	return function(particle) {
 		var neighbour = particle.neighbour
 		if (neighbour) {
 			var colorCode = TemperatureColor(particle.temperature + neighbour.temperature / 2)
 			ctx.strokeStyle = colorCode;
 			ctx.fillStyle = colorCode;
-			ctx.moveTo(particle.getLocation().x, particle.getLocation().y)
-			ctx.lineTo(neighbour.getLocation().x, neighbour.getLocation().y)
+			var pl = particle.getLocation()
+			var nl = neighbour.getLocation()
+			var tangent1 = nl.subtract(pl).rotate(90).withLength(radius)
+			var tangent2 = nl.subtract(pl).rotate(-90).withLength(radius)
+			ctx.beginPath();
+			var cp = nl.subtract(pl).times(.5).add(pl)
+			move(pl.add(tangent1))
+			bezier(cp, nl.add(tangent1))
+			line(nl.add(tangent2))
+			bezier(cp, pl.add(tangent2))
+			line(pl.add(tangent1))
+			ctx.closePath()
 			ctx.stroke()
+			ctx.fill()
+		}
+		
+		// Vector2D -> Vector2D -> Unit
+		function line(to) {
+			ctx.lineTo(to.x, to.y)			
+		}
+		
+		// Vector2D -> Vector2D -> Unit
+		function move(to) {
+			ctx.moveTo(to.x, to.y)
+		}		
+		
+		function bezier(cp, to) {
+			ctx.bezierCurveTo(cp.x, cp.y, cp.x, cp.y, to.x, to.y)			
 		}
 	}
 }
@@ -238,7 +263,17 @@ function Vector2D(x, y, cache) {
 		// Unit -> Vector2D
 		invert : function(cache) { return Vector2D(-this.x, -this.y, cache) },
 		// Number -> Vector2D
-		withLength : function(newLength, cache) { return this.times(newLength / this.getLength(), cache) }
+		withLength : function(newLength, cache) { return this.times(newLength / this.getLength(), cache) },
+		// Number -> Vector2D
+		rotate : function(degrees, cache) {
+			var length = this.getLength()
+			var radians = degrees * 2 * Math.PI / 360
+			unit = this.withLength(1, cache)
+			var currentRadians = Math.atan2(unit.y, unit.x)
+			var resultRadians = radians + currentRadians
+			var rotatedUnit = Vector2D(Math.cos(resultRadians), Math.sin(resultRadians), cache)
+			return rotatedUnit.withLength(length, cache)
+		}
 	}
 }
 
