@@ -12,7 +12,8 @@ function Lavalamp(canvas) {
 	)
 	//var renderer = PixelRenderer(ctx, particles, bounds) 
 	var renderer = ParticleRenderer(ctx, particles, bounds, [
-		ParticleCircleRenderer(ctx)
+		ParticleCircleRenderer(ctx, 20),
+		ParticleNeighbourRenderer(ctx, 20)
 	])
 		
 	Updater(mover, renderer, 20)
@@ -158,8 +159,7 @@ function ParticleRenderer(ctx, particles, bounds, renderers) {
 	return { render : render }
 }
 
-function ParticleCircleRenderer(ctx) {
-	var radius = 20
+function ParticleCircleRenderer(ctx, radius) {
 	return function(particle) {
 		var location = particle.getLocation()
 		var colorCode = TemperatureColor(particle.temperature)
@@ -170,6 +170,20 @@ function ParticleCircleRenderer(ctx) {
 		ctx.closePath();
 		ctx.stroke();
 		ctx.fill();		
+	}
+}
+
+function ParticleNeighbourRenderer(ctx, radius) {
+	return function(particle) {
+		var neighbour = particle.neighbour
+		if (neighbour) {
+			var colorCode = TemperatureColor(particle.temperature + neighbour.temperature / 2)
+			ctx.strokeStyle = colorCode;
+			ctx.fillStyle = colorCode;
+			ctx.moveTo(particle.getLocation().x, particle.getLocation().y)
+			ctx.lineTo(neighbour.getLocation().x, neighbour.getLocation().y)
+			ctx.stroke()
+		}
 	}
 }
 
