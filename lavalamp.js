@@ -123,7 +123,7 @@ function BoundsChecker(bounds) {
     	}
 		function bounce(axis, location, velocity, boundDelta) {
 			location[axis] = location[axis] - 2 * boundDelta
-			var bounciness = 0.1
+			var bounciness = 0
             velocity[axis] = -velocity[axis] * bounciness
 		}
 	}	
@@ -155,6 +155,13 @@ function TemperatureColor(temperature) {
 	return "rgba(256, " + green +", 0, 0.5)"	
 }
 
+// TODO ref
+function FlashColor(temperature) {
+	green = Math.floor(Math.min(temperature, 256))
+	return "rgba(0, " + green +", 256, 0.5)"	
+}
+
+
 // CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> ParticleRenderer
 function ParticleRenderer(ctx, particles, bounds, renderers) {
 	function render() {
@@ -175,7 +182,7 @@ function ParticleCircleRenderer(ctx, radius) {
 	return function(particle) {
 		var location = particle.getLocation()
 		var colorCode = TemperatureColor(particle.temperature)
-		ctx.strokeStyle = colorCode;
+		ctx.strokeStyle = "rgba(0,0,0,0)";
 		ctx.fillStyle = colorCode;
 		ctx.beginPath();
 		ctx.arc(location.x, location.y,radius,0,Math.PI*2,true);
@@ -189,8 +196,8 @@ function SlimeRenderer(ctx, radius) {
 	return function(particle) {
 		var neighbour = particle.neighbour
 		if (neighbour) {
-			var colorCode = TemperatureColor((particle.temperature + neighbour.temperature) / 2)
-			ctx.strokeStyle = colorCode;
+			var colorCode = FlashColor((particle.temperature + neighbour.temperature) / 2)
+			ctx.strokeStyle = "rgba(0,0,0,0)";
 			ctx.fillStyle = colorCode;
 			var pl = particle.getLocation()
 			var nl = neighbour.getLocation()
