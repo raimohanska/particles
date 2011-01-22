@@ -11,9 +11,10 @@ function Lavalamp(canvas) {
 		BoundsChecker(bounds)]
 	)
 	//var renderer = PixelRenderer(ctx, particles, bounds) 
+	var radius = 20
 	var renderer = ParticleRenderer(ctx, particles, bounds, [
-		ParticleCircleRenderer(ctx, 20)
-		,SlimeRenderer(ctx, 20)
+		ParticleCircleRenderer(ctx, radius)
+		,SlimeRenderer(ctx, radius)
 	])
 		
 	Updater(mover, renderer, 20)
@@ -151,7 +152,7 @@ function TemperatureColor(temperature) {
 		return "rgba(0, 0, 0, 0.5)"			
 	}
 	green = Math.floor(Math.min(temperature, 256))
-	return "rgba(256, " + green +", 0, 1)"	
+	return "rgba(256, " + green +", 0, 0.5)"	
 }
 
 // CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> ParticleRenderer
@@ -196,7 +197,7 @@ function SlimeRenderer(ctx, radius) {
 			var distance = nl.subtract(pl)
 			var tangent1 = distance.rotate(90).withLength(radius)
 			var tangent2 = distance.rotate(-90).withLength(radius)
-			var thickness = radius / 2
+			var thickness = 0
 			ctx.beginPath();
 			var cp = nl.subtract(pl).times(.5).add(pl)
 			move(pl.add(tangent1))
