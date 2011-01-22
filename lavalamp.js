@@ -56,11 +56,16 @@ function Liquidness() {
 		var distance = distanceVector.getLength()
 		var rejectionThreshold = 12
 		var attractionThreshold = 30
+		var neighbourhoodThreshold = 50
+		if (distance < neighbourhoodThreshold) {
+			particle.neighbour = otherParticle
+			otherParticle.neighbour = undefined			
+		} else if (particle.neighbour == otherParticle && distance > neighbourhoodThreshold * 2) {
+			particle.neighbour = undefined
+		}
 		if (distance < rejectionThreshold) {
 			return distanceVector.withLength(-0.0001, cache)
 		} else if (distance < attractionThreshold) {
-			particle.neighbour = otherParticle
-			otherParticle.neighbour = undefined
 			return distanceVector.withLength(+0.00002, cache)
 		}
 		return Vector2D(0, 0, cache)
