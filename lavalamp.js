@@ -191,14 +191,16 @@ function SlimeRenderer(ctx, radius) {
 			ctx.fillStyle = colorCode;
 			var pl = particle.getLocation()
 			var nl = neighbour.getLocation()
-			var tangent1 = nl.subtract(pl).rotate(90).withLength(radius)
-			var tangent2 = nl.subtract(pl).rotate(-90).withLength(radius)
+			var distance = nl.subtract(pl)
+			var tangent1 = distance.rotate(90).withLength(radius)
+			var tangent2 = distance.rotate(-90).withLength(radius)
+			var thickness = radius / 2
 			ctx.beginPath();
 			var cp = nl.subtract(pl).times(.5).add(pl)
 			move(pl.add(tangent1))
-			bezier(cp, nl.add(tangent1))
+			bezier(cp.add(tangent1.withLength(thickness)), nl.add(tangent1))
 			line(nl.add(tangent2))
-			bezier(cp, pl.add(tangent2))
+			bezier(cp.add(tangent2.withLength(thickness)), pl.add(tangent2))
 			line(pl.add(tangent1))
 			ctx.closePath()
 			ctx.stroke()
