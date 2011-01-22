@@ -12,8 +12,8 @@ function Lavalamp(canvas) {
 	)
 	//var renderer = PixelRenderer(ctx, particles, bounds) 
 	var renderer = ParticleRenderer(ctx, particles, bounds, [
-		ParticleCircleRenderer(ctx, 20),
-		SlimeRenderer(ctx, 20)
+		ParticleCircleRenderer(ctx, 20)
+		,SlimeRenderer(ctx, 20)
 	])
 		
 	Updater(mover, renderer, 20)
@@ -151,14 +151,16 @@ function TemperatureColor(temperature) {
 		return "rgba(0, 0, 0, 0.5)"			
 	}
 	green = Math.floor(Math.min(temperature, 256))
-	return "rgba(256, " + green +", 0, 0.5)"	
+	return "rgba(256, " + green +", 0, 1)"	
 }
 
 // CanvasRenderingContext2D -> Array<Particle> -> Rectangle -> ParticleRenderer
 function ParticleRenderer(ctx, particles, bounds, renderers) {
 	function render() {
 		ctx.fillStyle = "rgb(0, 0, 0)";
+		ctx.globalCompositeOperation='source-over'
 		ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
+		ctx.globalCompositeOperation='lighter'
 		particles.forEach(function(particle) {
 			renderers.forEach(function (renderer) {
 				renderer(particle)
