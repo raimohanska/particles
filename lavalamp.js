@@ -200,10 +200,10 @@ function SlimeRenderer(ctx, radius) {
 			ctx.beginPath();
 			var cp = nl.subtract(pl).times(.5).add(pl)
 			move(pl.add(tangent1))
-			bezier(cp.add(tangent1.withLength(thickness)), nl.add(tangent1))
-			line(nl.add(tangent2))
-			bezier(cp.add(tangent2.withLength(thickness)), pl.add(tangent2))
-			line(pl.add(tangent1))
+			curve(cp.add(tangent1.withLength(thickness)), nl.add(tangent1))
+			ctx.arc(nl.x, nl.y, radius, tangent1.getAngle(), tangent2.getAngle(), true);			
+			curve(cp.add(tangent2.withLength(thickness)), pl.add(tangent2))
+			ctx.arc(pl.x, pl.y, radius, tangent2.getAngle(), tangent1.getAngle(), true)
 			ctx.closePath()
 			ctx.stroke()
 			ctx.fill()
@@ -219,8 +219,8 @@ function SlimeRenderer(ctx, radius) {
 			ctx.moveTo(to.x, to.y)
 		}		
 		
-		function bezier(cp, to) {
-			ctx.bezierCurveTo(cp.x, cp.y, cp.x, cp.y, to.x, to.y)			
+		function curve(cp, to) {
+			ctx.quadraticCurveTo(cp.x, cp.y, to.x, to.y)			
 		}
 	}
 }
@@ -274,13 +274,18 @@ function Vector2D(x, y, cache) {
 		withLength : function(newLength, cache) { return this.times(newLength / this.getLength(), cache) },
 		// Number -> Vector2D
 		rotate : function(degrees, cache) {
-			var length = this.getLength()
 			var radians = degrees * 2 * Math.PI / 360
-			unit = this.withLength(1, cache)
-			var currentRadians = Math.atan2(unit.y, unit.x)
+			var length = this.getLength()			
+			var currentRadians = this.getAngle(cache)
 			var resultRadians = radians + currentRadians
 			var rotatedUnit = Vector2D(Math.cos(resultRadians), Math.sin(resultRadians), cache)
 			return rotatedUnit.withLength(length, cache)
+		},
+		// Unit -> Number
+		getAngle : function(cache) {
+			var length = this.getLength()
+			unit = this.withLength(1, cache)
+			return Math.atan2(unit.y, unit.x)			
 		}
 	}
 }
