@@ -1,7 +1,12 @@
 function Lavalamp(canvas) {
-	var ctx = canvas.get(0).getContext('2d')		
-	var bounds = Rectangle(0, 0, 150, 500)
-	var count = 100;
+	const rect = canvas.getBoundingClientRect()
+	canvas.width = rect.width
+	canvas.height = rect.height
+	var ctx = canvas.getContext('2d')		
+	var bounds = Rectangle(0, 0, rect.width, rect.height)
+	console.log(bounds)
+	const area = bounds.width * bounds.height
+	var count = Math.floor(area / 1000)
 	
 	var particles = Init(bounds, count)	
 	var mover = ParticleMover(particles, [
@@ -28,7 +33,11 @@ function Init(bounds, count) {
 		}
 		return Particle(randomLocation(), Vector2D(0, 0), bounds)
 	}
-	return _.map(_.range(count), randomParticle)	
+	return range(count).map(randomParticle)	
+}
+
+function range(limit) {
+	return Array(limit).fill(1).map((x, y) => x + y)
 }
 
 function Updater(mover, renderer, interval) {
@@ -80,7 +89,7 @@ function Liquidness() {
 
 function Gravity(particles, gravityFunction, cache) {
 	return function (particle, deltaTime, cache) {
-		_.forEach(particles, function(otherParticle) {
+		particles.forEach(function(otherParticle) {
 			if (otherParticle != particle) {
 				var gravitation = gravityFunction(particle, otherParticle, cache)
 				particle.accelerate(gravitation, deltaTime, cache)
@@ -143,7 +152,7 @@ function ParticleMover(particles, functionsToApply) {
 	}
 	var cache = Vector2D()
 	return { move : function(deltaTime) {
-		_.forEach(particles, function(particle) { moveParticle(particle, deltaTime, cache) })
+		particles.forEach(function(particle) { moveParticle(particle, deltaTime, cache) })
 	}}
 }
 

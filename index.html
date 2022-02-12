@@ -1,18 +1,26 @@
 <html>
 <head>
-	<script type="text/javascript" src="jquery.js"></script>
-	<script type="text/javascript" src="underscore.js"></script>
 	<script type="text/javascript" src="lavalamp.js"></script>
-	<script type="text/javascript">
-		$(function() { 
-			Lavalamp($('#lavalamp')) 
-		})
-	</script>
 	<style type="text/css">
-		canvas { border: 1px solid black; }
+		body {
+			display: flex;
+			align-items: flex-start;
+			justify-content: center;
+			padding-top: 48px;
+			background: #232323;
+		}
+		canvas { 
+			display: inline-block;
+			border: 1px solid black; 
+			width: 300px;
+			height: 500px;
+		}
 	</style>
 </head>
 <body>
-<canvas id="lavalamp" width="150" height="500"></canvas>
+<canvas id="lavalamp"></canvas>
 </body>
+<script type="text/javascript">
+	Lavalamp(document.getElementById("lavalamp"))
+</script>
 </html>
