@@ -6,7 +6,7 @@ function Lavalamp(canvas) {
 	var bounds = Rectangle(0, 0, rect.width, rect.height)
 	console.log(bounds)
 	const area = bounds.width * bounds.height
-	var count = Math.floor(area / 1000)
+	var count = Math.floor(area / 300)
 	
 	var particles = Init(bounds, count)	
 	var mover = ParticleMover(particles, [
@@ -111,7 +111,7 @@ function Heater(bounds) {
 		particle.temperature |= 0
 		var lampPosition = Vector2D(bounds.x + bounds.width / 2, bounds.y + bounds.height, cache)
 		var distanceFromLamp = particle.getLocation().subtract(lampPosition, cache).getLength() + 10
-		var ambientTemperature = 10000 / distanceFromLamp
+		var ambientTemperature = 12000 / distanceFromLamp
 		var diff = ambientTemperature - particle.temperature
 		var conductivity = 0.005		
 		particle.temperature = particle.temperature + diff * conductivity;
